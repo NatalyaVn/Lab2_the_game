@@ -1,0 +1,33 @@
+/* CSS files add styling rules to your content */
+
+main{
+  width:370px;
+  height:100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+div{
+  border: 1px solid black;
+  height: 50px;
+  width: 50px;
+}
+section{
+	display: flex;
+	flex-direction: row;
+	height: 360px;
+}
+span{
+	margin-left:50px;
+}
+p{
+	font-size: 24px;
+	text-align: center;
+}
+.butt
+{
+  width: 150px;
+  height: 30px;
+  margin-left:15px;
+  margin-top:20px;
+}
