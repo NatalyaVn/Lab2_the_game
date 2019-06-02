@@ -1,114 +1,99 @@
-function change() 
-{
-  if (this.style.backgroundColor == 'blue')
-    this.style.backgroundColor = 'white';
-  else
-    this.style.backgroundColor = 'blue';
-}
-
+var N = 7, M = N-1;//N*N - размерность массива
+var timer = 0;//таймер игры
+var timerChangeColor = 0;//таймер для наведения мышки на клетку
 var obj = document.getElementById('m');
-for (var i = 0; i < obj.children.length; i++) 
-{ 
-  obj.children[i].addEventListener('click', change);
-}
-
-var n = 7, m = 7 , k = 0;
+var k = 0;//счетчик
 var mas = [];
-for (var i = 0; i < m; i++)
+for (var i = 0; i < N; i++)//создание двумерного массива
 {
   mas[i] = [];
-  for (var j = 0; j < n; j++)
+  for (var j = 0; j < N; j++)
   {
-      mas[i][j] = obj.children[k++];
-      mas[i][j].style.backgroundColor = 'white';
+    obj.children[k].addEventListener('click', change);//на каждый div-объект навешиваем событие click    
+    mas[i][j] = obj.children[k++];//заносим объекты в двумерный массив
+    mas[i][j].setAttribute('data-old-color', 'white');
   }
 }
 
-function start()
-{ 
-  k = 0;
-  var mas_color = [];
-  for (var i = 0; i < m; i++)
-    for (var j = 0; j < n; j++)
-        mas_color[k++] = mas[i][j].style.backgroundColor;
-  
-  var sum = 0; k = 0;
-  for (i = 0; i < m; i++)
+function change(){ //ф-я расстановки цвета
+  if (this.style.backgroundColor == 'blue'){//при щелчке по клетке меняем цвет на другой
+    this.style.backgroundColor = 'white';
+    this.setAttribute('data-old-color', 'white');
+  }
+  else{
+    this.style.backgroundColor = 'blue';
+    this.setAttribute('data-old-color', 'blue');
+  }
+}
+
+var button1 = document.getElementById("start");//нажатие на кнопку "Начать игру"
+button1.onclick = start;
+var button2 = document.getElementById("restart");//нажатие на кнопку "Начать с начала"
+button2.onclick = end;
+
+function start(){//нажатие на кнопку "Начать игру"
+  for (var i = 0; i < N; i++)//на каждый div 
+    for (var j = 0; j < N; j++){
+      mas[i][j].removeEventListener('click', change);//убираем событие click
+      mas[i][j].addEventListener('mouseover', changeColorMouseOver);//вешаем события наведения
+      mas[i][j].addEventListener('mouseout', resetColorTimeout);
+    }
+  timer = setInterval(iteration, 3000);//каждые 3с выполняется функция iteration
+}
+
+function iteration(){//одна итерация
+  var sum = 0;//сумма живых клеток вокруг
+  for (i = 0; i < N; i++)//для кажд клетки
   {
-    for (j = 0; j < n; j++)
+    for (j = 0; j < N; j++)
     {
-      for(var a = i-1; a <= i+1; a++)
+      for(var a = i-1; a <= i+1; a++)//у каждой клетки просмотриваем все клетки вокруг
           for(var b = j-1; b <= j+1; b++)
-          {
-            if(a>=0 && b>=0 && a<=4 && b<=4)
-              if(!(a==i && b==j))
-              {
-                if (mas[a][b].style.backgroundColor == 'blue') 
-                  sum++;
-              }
-          }
-      if(mas[i][j].style.backgroundColor == 'blue')
+            if(a>=0 && b>=0 && a<=M && b<=M){//проверка на выход за границы поля
+                if(a < i || a == i && b < j){//если это клетка ДО текущей
+                  if (mas[a][b].getAttribute('data-old-color') == 'blue')//смотрим предыдущее состояние клетки
+                    sum++;
+                }
+                else if (a > i || a == i && b > j)//если это клетка ПОСЛЕ текущей
+                {
+                  if (mas[a][b].style.backgroundColor == 'blue')//смотрим нынешнее состояние клетки
+                    sum++;
+                }
+            }
+      mas[i][j].setAttribute('data-old-color', mas[i][j].style.backgroundColor);//устанавливаем текущий цвет в old-color
+      if(mas[i][j].getAttribute('data-old-color') == 'blue')//проверка условий выживания
       {
         if(!(sum == 2 || sum == 3))
-          mas_color[k] = 'white';
+          mas[i][j].style.backgroundColor = 'white';
       }
       else
         if(sum==3)
-          mas_color[k] =  'blue';
-      k++;
-      sum = 0;
+          mas[i][j].style.backgroundColor = 'blue';
+      sum = 0;//обнуляем сумму
     }
   }
-  
-  k = 0;
-  for (var i = 0; i < m; i++)
-    for (var j = 0; j < n; j++)
-      mas[i][j].style.backgroundColor = mas_color[k++];
 }
 
-var timer = 0;
-function start_int()
-{
-  for (var i = 0; i < m; i++)
-    for (var j = 0; j < n; j++){
-      mas[i][j].removeEventListener('click', change);
-      mas[i][j].addEventListener('mouseover', changeColorAfterTimeout);
-      mas[i][j].addEventListener('mouseout', resetColorTimeout);
-    }
-  timer = setInterval(start, 2500);
-  setTimeout(function() {
-    clearInterval(timer);
-  }, 60000);
+function end(){//нажатие на кнопку "Начать с начала"
+  clearInterval(timer);//останавливаем таймер игры
+    for (var i = 0; i < N; i++)
+      for (var j = 0; j < N; j++){
+        mas[i][j].addEventListener('click', change);//вешаем событие click
+        mas[i][j].removeEventListener('mouseover', changeColorMouseOver);//убираем события наведения
+        mas[i][j].removeEventListener('mouseout', resetColorTimeout);
+        mas[i][j].style.backgroundColor = 'white';//обесцвечиваем все клетки
+        mas[i][j].setAttribute('data-old-color', 'white');
+      }
 }
 
-var timerChangeColor = 0;
-function changeColorAfterTimeout(){
+function changeColorMouseOver(){//при событии наведения
   var el = this;
-  timerChangeColor = setTimeout(function(){
-    el.style.backgroundColor='white';
+  timerChangeColor = setTimeout(function(){//устанавливаем счетчик на 2с
+    el.style.backgroundColor='white';//при истечении 2с клетка становится белой/мертвой
+    el.setAttribute('data-old-color', 'white');
   }, 2000);
 }
 
-function resetColorTimeout(){
-  clearTimeout(timerChangeColor);
+function resetColorTimeout(){//при событии снятия 
+  clearTimeout(timerChangeColor);//обнуляем счетчик
 }
-
-function end()
-{
-  clearInterval(timer);
-    for (var i = 0; i < m; i++)
-    for (var j = 0; j < n; j++){
-      mas[i][j].addEventListener('click', change);
-      mas[i][j].removeEventListener('mouseover', changeColorAfterTimeout);
-      mas[i][j].removeEventListener('mouseout', resetColorTimeout);
-    }
-  
-  for (var i = 0; i < m; i++)
-    for (var j = 0; j < n; j++)
-      mas[i][j].style.backgroundColor = 'white';
-}
-
-var button1 = document.getElementById("start");
-button1.onclick = start_int;
-var button2 = document.getElementById("restart");
-button2.onclick = end;
